@@ -7,7 +7,9 @@ build_script:
     set sln=Autodesk/Revit/src/RhinoInside.Revit.sln
 
     msbuild %sln% /t:restore;build /p:Configuration="Release 2017"
+    
     msbuild %sln% /t:restore;build /p:Configuration="Release 2018"
+    
     msbuild %sln% /t:restore;build /p:Configuration="Release 2019"
 
     msbuild Autodesk/Revit/src/RhinoInside.Revit.Setup.sln /p:Configuration=Release
