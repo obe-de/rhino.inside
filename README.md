@@ -31,5 +31,8 @@ This repository contains samples for:
 - [Console](ConsoleApps)
    - [A simple console application](ConsoleApps/HelloWorld)
    - [A simple console application for converting files to .obj](ConsoleApps/Convert)
+- [Node.js](Node.js)
+   - [Sample 1](Node.js/Sample-1) A basic example showing how to run Rhino inside of Node.js via edge.js.
+   - [Sample 2](Node.js/Sample-2) Extends Sample-1.
 
 **If you have any questions, [visit the discussion forum...](https://discourse.mcneel.com/c/serengeti/inside)**

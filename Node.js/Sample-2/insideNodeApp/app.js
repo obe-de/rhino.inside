@@ -8,6 +8,7 @@ var baseDll = baseAppPath + namespace + '.dll';
 
 var rhinoTypeName = namespace + '.RhinoMethods';
 
+// Define functions
 var startRhino = edge.func({
   assemblyFile: baseDll,
   typeName: rhinoTypeName,
@@ -20,6 +21,7 @@ var doSomething = edge.func({
   methodName: 'DoSomething'
 });
 
+// Call functions
 startRhino('', function (error, result) {
   if (error) throw error;
   console.log(result);
