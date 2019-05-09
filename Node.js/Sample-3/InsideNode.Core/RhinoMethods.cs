@@ -61,8 +61,6 @@ namespace InsideNode.Core
       var sphereMesh = Rhino.Geometry.Mesh.CreateFromBrep(sphere.ToBrep(), Rhino.Geometry.MeshingParameters.Default)[0];
       return Newtonsoft.Json.JsonConvert.SerializeObject(sphereMesh, GeometryResolver.Settings);
     }
-
-    
   }
 
   // from Compute: https://github.com/mcneel/compute.rhino3d/blob/master/src/compute.geometry/GeometryEndPoint.cs#L568-L671

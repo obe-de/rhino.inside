@@ -34,5 +34,6 @@ This repository contains samples for:
 - [Node.js](Node.js)
    - [Sample 1](Node.js/Sample-1) A basic example showing how to run Rhino inside of Node.js via edge.js.
    - [Sample 2](Node.js/Sample-2) Extends Sample-1.
+   - [Sample 3](Node.js/Sample-3) Sample of running Rhino inside Electron.
 
 **If you have any questions, [visit the discussion forum...](https://discourse.mcneel.com/c/serengeti/inside)**
