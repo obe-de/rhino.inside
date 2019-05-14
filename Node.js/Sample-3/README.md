@@ -6,7 +6,7 @@ This sample shows how to run Rhino from `Electron`.
 This sample extends Sample 1 and 2 by using Electron for UI. Geometry rendered with [three.js](https://threejs.org).
 The sample has been tested on Windows 10, Rhino 7 WIP, and Node.js 8.11.12 (though should work on more recent versions of Node.js)
 
-There are two projects:
+There is one project:
 - `InsideNode.Core.csproj` - Compiles to a .net Core 2.0 class library with one class and several method. This class contains the code to start Rhino.
 
 ### Dependencies
