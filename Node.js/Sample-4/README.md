@@ -1,9 +1,9 @@
 # Rhino Inside Node.js
 The Rhino Inside® technology allows Rhino and Grasshopper to be embedded within other products.
 
-## Sample 3
+## Sample 4
 This sample shows how to run Rhino from `Electron`.
-This sample extends Sample 1 and 2 by using Electron for UI. Geometry rendered with [three.js](https://threejs.org).
+This sample extends Sample 1, 2, and 3 by using Electron for UI. Geometry rendered with [three.js](https://threejs.org).
 The sample has been tested on Windows 10, Rhino 7 WIP, and Node.js 8.11.12 (though should work on more recent versions of Node.js)
 
 There is one project:
@@ -18,7 +18,7 @@ There is one project:
 
 ### Running this sample
 This assumes you've installed Node.js for Windows.
-1. Open a console from the `Sample-3` directory.
+1. Open a console from the `Sample-4` directory.
 2. Run `npm install` to install any dependencies.
 open the `InsideNode.Core.sln` in Visual Studio and build the solution. This builds the .dll which is referenced in the Node.js project.
 3. Run `npm start` to run the sample.
