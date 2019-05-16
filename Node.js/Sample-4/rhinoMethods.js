@@ -26,6 +26,18 @@ var doSomething = edge.func({
     methodName: 'DoSomething'
 });
 
+var startThread = edge.func({
+  assemblyFile: baseDll,
+  typeName: rhinoTypeName,
+  methodName: 'StartThread'
+});
+
+var grasshopperCommand = edge.func({
+  assemblyFile: baseDll,
+  typeName: rhinoTypeName,
+  methodName: 'GrasshopperCommand'
+});
+
 let rhinoStatus = false;
 
 require('electron').ipcRenderer.on('open-rhino', (event, message) => {
@@ -35,6 +47,26 @@ require('electron').ipcRenderer.on('open-rhino', (event, message) => {
     console.log(result);
     rhinoStatus = result;
   });
+});
+
+require('electron').ipcRenderer.on('start-thread', (event, message) => {
+  console.log('starting thread');
+  startThread('', function(error, result) {
+    if (error) throw JSON.stringify(error);
+    console.log(error);
+    console.log(result);
+  });
+  console.log('passed starting thread');
+});
+
+require('electron').ipcRenderer.on('start-thread', (event, message) => {
+  console.log('starting grasshopper');
+  grasshopperCommand('', function(error, result) {
+    if (error) throw JSON.stringify(error);
+    console.log(error);
+    console.log(result);
+  });
+  console.log('passed starting grasshopper');
 });
 
 /*

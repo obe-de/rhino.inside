@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Rhino.FileIO;
+using Rhino.PlugIns;
 using Rhino.Runtime.InProcess;
 
 namespace InsideNode.Core
@@ -15,6 +16,8 @@ namespace InsideNode.Core
   public class RhinoMethods
   {
     RhinoCore rhinoCore;
+
+    static readonly Guid GrasshopperGuid = new Guid(0xB45A29B1, 0x4343, 0x4035, 0x98, 0x9E, 0x04, 0x4E, 0x85, 0x80, 0xD9, 0xCF);
 
     static RhinoMethods()
     {
@@ -41,10 +44,12 @@ namespace InsideNode.Core
       try
       {
 
-        //Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+
         // WindowStyle.Hidden: Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
         // WindowStyle.Normal: Rhino opens, then Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
         // WindowStyle.NoWindow: OK
+
+        Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
 
         rhinoCore = new RhinoCore(new string[] { "/NOSPLASH" }, WindowStyle.Hidden);
 
@@ -54,8 +59,50 @@ namespace InsideNode.Core
       catch (Exception ex)
       {
         //Debug.WriteLine(ex.Message);
-        return ex.Message + " " + ex.StackTrace;
+        return ex.Message + " " + ex.StackTrace + " " + ex.TargetSite;
       }
+    }
+
+    public async Task<object> StartThread(dynamic command)
+    {
+      var tcs = new TaskCompletionSource<object>();
+      var ts = new ThreadStart(() => {
+        //huh
+
+        try
+        {
+
+          // Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
+          // WindowStyle.Hidden: Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
+          // WindowStyle.Normal: Rhino opens, then Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
+          // WindowStyle.NoWindow: OK
+
+          rhinoCore = new RhinoCore(new string[] {  }, WindowStyle.Hidden);
+
+          Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false);
+
+          //return true;
+
+        }
+        catch (Exception ex)
+        {
+          //Debug.WriteLine(ex.Message);
+          //return ex.Message + " " + ex.StackTrace;
+        }
+
+      });
+      var thread = new Thread(ts);
+      thread.TrySetApartmentState(ApartmentState.STA);
+      thread.Start();
+      return tcs.Task;
+    }
+
+    public async Task<object> GrasshopperCommand(dynamic input)
+    {
+      if (!PlugIn.LoadPlugIn(GrasshopperGuid))
+        return false;
+
+      return Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
     }
 
     public async Task<object> DoSomething(dynamic input)

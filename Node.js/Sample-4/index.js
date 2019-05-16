@@ -49,6 +49,14 @@ function createWindow () {
           mainWindow.webContents.send('open-grasshopper');
 
         }
+      },
+      {
+        label: 'Start Thread',
+        click: (item, focusedWindow) => {
+          
+          mainWindow.webContents.send('start-thread');
+
+        }
       }
     ]
   })
