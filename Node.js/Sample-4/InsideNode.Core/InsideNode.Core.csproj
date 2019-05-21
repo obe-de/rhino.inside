@@ -19,6 +19,14 @@
     <Reference Include="EdgeJs">
       <HintPath>..\node_modules\electron-edge-js\lib\bootstrap\bin\Release\netcoreapp1.1\EdgeJs.dll</HintPath>
     </Reference>
+    <Reference Include="GH_IO">
+      <HintPath>..\..\..\..\..\..\Program Files\Rhino WIP\Plug-ins\Grasshopper\GH_IO.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Grasshopper">
+      <HintPath>..\..\..\..\..\..\Program Files\Rhino WIP\Plug-ins\Grasshopper\Grasshopper.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="RhinoCommon">
       <HintPath>..\..\..\..\..\..\..\..\Program Files\Rhino WIP\System\RhinoCommon.dll</HintPath>
       <Private>false</Private>

@@ -2,12 +2,10 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using Rhino.FileIO;
 using Rhino.PlugIns;
 using Rhino.Runtime.InProcess;
 
@@ -15,102 +13,55 @@ namespace InsideNode.Core
 {
   public class RhinoMethods
   {
-    RhinoCore rhinoCore;
-
-    static readonly Guid GrasshopperGuid = new Guid(0xB45A29B1, 0x4343, 0x4035, 0x98, 0x9E, 0x04, 0x4E, 0x85, 0x80, 0xD9, 0xCF);
-
+    static RhinoInsideTaskManager rhinoInsideTaskManager;
+    
     static RhinoMethods()
     {
-      ResolveEventHandler OnRhinoCommonResolve = null;
+      rhinoInsideTaskManager = new RhinoInsideTaskManager();
+    }
 
-      AppDomain.CurrentDomain.AssemblyResolve += OnRhinoCommonResolve = (sender, args) =>
+    public async Task<object> StartRhinoNow(dynamic input)
+    {
+      return rhinoInsideTaskManager.StartRhinoTask(input);
+    }
+
+    public async Task<object> StartGrasshopperNow(dynamic input)
+    {
+      
+      return rhinoInsideTaskManager.StartGrasshopperTask(input);
+    }
+
+    public void SubscribeToGH(dynamic input)
+    {
+      // Subscribe to events
+
+      var editor = Grasshopper.Instances.DocumentEditor;
+      var canvas = Grasshopper.Instances.ActiveCanvas;
+
+      canvas.DocumentChanged += (Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.Canvas.GH_CanvasDocumentChangedEventArgs e) =>
       {
-        const string rhinoCommonAssemblyName = "RhinoCommon";
-        var assemblyName = new AssemblyName(args.Name).Name;
+        ((Func<object, Task<object>>) input.event_handler)(e).Start();
+      };
+    }
 
-        if (assemblyName != rhinoCommonAssemblyName)
-          return null;
 
-        AppDomain.CurrentDomain.AssemblyResolve -= OnRhinoCommonResolve;
-
-        string rhinoSystemDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", "System");
-        return Assembly.LoadFrom(Path.Combine(rhinoSystemDir, rhinoCommonAssemblyName + ".dll"));
+    public async Task<object> Subscribe(dynamic input)
+    {
+      var timer = new System.Timers.Timer(input.interval);
+      timer.Elapsed += (Object source, System.Timers.ElapsedEventArgs e) =>
+      {
+        ((Func<object, Task<object>>)input.event_handler)(e).Start();
       };
 
-    }
+      timer.Enabled = true;
 
-    public async Task<object> StartRhino(dynamic input)
-    {
-      try
+      return (Func<object, Task<object>>) (async (dynamic data) =>
       {
-
-
-        // WindowStyle.Hidden: Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
-        // WindowStyle.Normal: Rhino opens, then Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
-        // WindowStyle.NoWindow: OK
-
-        Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
-
-        rhinoCore = new RhinoCore(new string[] { "/NOSPLASH" }, WindowStyle.Hidden);
-
-        return true;
-
-      }
-      catch (Exception ex)
-      {
-        //Debug.WriteLine(ex.Message);
-        return ex.Message + " " + ex.StackTrace + " " + ex.TargetSite;
-      }
-    }
-
-    public async Task<object> StartThread(dynamic command)
-    {
-      var tcs = new TaskCompletionSource<object>();
-      var ts = new ThreadStart(() => {
-        //huh
-
-        try
-        {
-
-          // Thread.CurrentThread.SetApartmentState(ApartmentState.STA);
-          // WindowStyle.Hidden: Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
-          // WindowStyle.Normal: Rhino opens, then Node returns Error HRESULT E_FAIL has been returned from a call to a COM component.
-          // WindowStyle.NoWindow: OK
-
-          rhinoCore = new RhinoCore(new string[] {  }, WindowStyle.Hidden);
-
-          Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false);
-
-          //return true;
-
-        }
-        catch (Exception ex)
-        {
-          //Debug.WriteLine(ex.Message);
-          //return ex.Message + " " + ex.StackTrace;
-        }
-
+        timer.Enabled = false;
+        return null;
       });
-      var thread = new Thread(ts);
-      thread.TrySetApartmentState(ApartmentState.STA);
-      thread.Start();
-      return tcs.Task;
     }
 
-    public async Task<object> GrasshopperCommand(dynamic input)
-    {
-      if (!PlugIn.LoadPlugIn(GrasshopperGuid))
-        return false;
-
-      return Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
-    }
-
-    public async Task<object> DoSomething(dynamic input)
-    {
-      var sphere = new Rhino.Geometry.Sphere(Rhino.Geometry.Point3d.Origin, 2.00);
-      var sphereMesh = Rhino.Geometry.Mesh.CreateFromBrep(sphere.ToBrep(), Rhino.Geometry.MeshingParameters.Default)[0];
-      return Newtonsoft.Json.JsonConvert.SerializeObject(sphereMesh, GeometryResolver.Settings);
-    }
   }
 
   // from Compute: https://github.com/mcneel/compute.rhino3d/blob/master/src/compute.geometry/GeometryEndPoint.cs#L568-L671

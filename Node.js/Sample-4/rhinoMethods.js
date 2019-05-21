@@ -20,38 +20,48 @@ var startRhino = edge.func({
     methodName: 'StartRhino'
 });
 
-var doSomething = edge.func({
-    assemblyFile: baseDll,
-    typeName: rhinoTypeName,
-    methodName: 'DoSomething'
-});
-
-var startThread = edge.func({
+var disposeRhino = edge.func({
   assemblyFile: baseDll,
   typeName: rhinoTypeName,
-  methodName: 'StartThread'
+  methodName: 'DisposeRhino'
 });
 
 var grasshopperCommand = edge.func({
   assemblyFile: baseDll,
   typeName: rhinoTypeName,
-  methodName: 'GrasshopperCommand'
+  methodName: 'StartGrasshopperNow'
 });
 
-let rhinoStatus = false;
+var rhinoRun = edge.func({
+  assemblyFile: baseDll,
+  typeName: rhinoTypeName,
+  methodName: 'RhinoRun'
+});
+
+var subscribe = edge.func({
+  assemblyFile: baseDll,
+  typeName: rhinoTypeName,
+  methodName: 'Subscribe'
+});
 
 require('electron').ipcRenderer.on('open-rhino', (event, message) => {
+  console.log('starting rhino');
   startRhino('', function(error, result) {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
-    rhinoStatus = result;
   });
 });
 
-require('electron').ipcRenderer.on('start-thread', (event, message) => {
-  console.log('starting thread');
-  startThread('', function(error, result) {
+require('electron').ipcRenderer.on('close-rhino', (event, message) => {
+  console.log('closing rhino');
+  disposeRhino(
+    {
+      event_handler: function (data, cb) {
+        console.log('Received Canvas Doc Changed', data);
+        cb();
+      }
+    }, function(error, result) {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
@@ -59,15 +69,54 @@ require('electron').ipcRenderer.on('start-thread', (event, message) => {
   console.log('passed starting thread');
 });
 
-require('electron').ipcRenderer.on('start-thread', (event, message) => {
+require('electron').ipcRenderer.on('open-grasshopper', (event, message) => {
   console.log('starting grasshopper');
   grasshopperCommand('', function(error, result) {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
+
+    rhinoRun('', function(error, result) {
+      if (error) throw JSON.stringify(error);
+      console.log(error);
+      console.log(result);
+    });
+
   });
-  console.log('passed starting grasshopper');
 });
+
+require('electron').ipcRenderer.on('subscribe', (event, message) => {
+  console.log('subscribing to event');
+
+  subscribe({
+    interval: 2000,
+    event_handler: function (data, cb) {
+        console.log('Received event', data);
+        cb();
+    } 
+  }, function (error, unsubscribe) {
+    if (error) throw error;
+    console.log('Subscribed to .NET events. Unsubscribing in 7 seconds...');
+    setTimeout(function () {
+        unsubscribe(null, function (error) {
+            if (error) throw error;
+            console.log('Unsubscribed from .NET events.');
+            console.log('Waiting 5 seconds before exit to show that no more events are generated...')
+            setTimeout(function () {}, 5000);
+        });
+    }, 7000);
+  });
+});
+
+window.onclose = function(){
+  // Do something
+  console.log('About to dispose Rhino');
+    disposeRhino('', function(error, result) {
+      if (error) throw JSON.stringify(error);
+      console.log(error);
+      console.log(result);
+    });
+}
 
 /*
 // wait for the rhino3dm web assembly to load asynchronously
@@ -127,20 +176,6 @@ function run() {
       renderer.setSize( window.innerWidth, window.innerHeight );
       render();
     }
-
-    var params = {
-      BackgroundColor : [ 0, 128, 255 ] // RGB array
-
-    };
-
-    // gui
-    var gui = new dat.GUI();
-
-    var folder1 = gui.addFolder('scene');
-    folder1.addColor(params, 'BackgroundColor').name('Background Color').onChange( function ( value ){
-      scene.background = new THREE.Color(value[0], value[1], value[2]);
-    });
-
 
     animate();
 

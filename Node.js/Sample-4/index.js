@@ -51,10 +51,18 @@ function createWindow () {
         }
       },
       {
-        label: 'Start Thread',
+        label: 'Close Rhino',
         click: (item, focusedWindow) => {
           
-          mainWindow.webContents.send('start-thread');
+          mainWindow.webContents.send('close-rhino');
+
+        }
+      },
+      {
+        label: 'Subscribe',
+        click: (item, focusedWindow) => {
+          
+          mainWindow.webContents.send('subscribe');
 
         }
       }
