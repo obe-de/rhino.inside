@@ -102,7 +102,6 @@ namespace InsideNode
       return  Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
     }
 
-
     /// <summary>
     /// Task to start Rhino.
     /// </summary>
@@ -127,13 +126,13 @@ namespace InsideNode
 
     public async Task<object> GrasshopperSubscribeTask(dynamic input)
     {
+      // This will fail
       await Task.Factory.StartNew(() => OnGrasshopperLoaded(), CancellationToken.None, TaskCreationOptions.None, this);
       return null;
     }
 
     async Task<object> OnGrasshopperLoaded()
     {
-
       try
       {
         // This fails due to not finding System.Windows.Forms
@@ -146,11 +145,6 @@ namespace InsideNode
         Console.WriteLine(ex.Message);
         
       }
-
-      //var editor = Grasshopper.Instances.DocumentEditor;
-      //var canvas = Grasshopper.Instances.ActiveCanvas;
-
-      //canvas.DocumentChanged += Canvas_DocumentChanged;
       return null;
     }
 
