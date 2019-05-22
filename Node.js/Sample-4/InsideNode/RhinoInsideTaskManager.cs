@@ -11,7 +11,7 @@ using Rhino.PlugIns;
 using Rhino.Runtime.InProcess;
 using Grasshopper;
 
-namespace InsideNode.Core
+namespace InsideNode
 {
   /// <summary>
   /// Custom task manager inspired by https://www.infoworld.com/article/3063560/building-your-own-task-scheduler-in-c.html.
@@ -30,7 +30,6 @@ namespace InsideNode.Core
 
       ResolveEventHandler OnRhinoCommonResolve = null;
       ResolveEventHandler OnGrasshopperCommonResolve = null;
-      ResolveEventHandler OnGHIOCommonResolve = null;
 
       AppDomain.CurrentDomain.AssemblyResolve += OnRhinoCommonResolve = (sender, args) =>
       {
@@ -55,20 +54,6 @@ namespace InsideNode.Core
           return null;
 
         AppDomain.CurrentDomain.AssemblyResolve -= OnGrasshopperCommonResolve;
-
-        string rhinoGHDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", @"Plug-ins\Grasshopper");
-        return Assembly.LoadFrom(Path.Combine(rhinoGHDir, grasshopperAssemblyName + ".dll"));
-      };
-
-      AppDomain.CurrentDomain.AssemblyResolve += OnGHIOCommonResolve = (sender, args) =>
-      {
-        const string grasshopperAssemblyName = "GH_IO";
-        var assemblyName = new AssemblyName(args.Name).Name;
-
-        if (assemblyName != grasshopperAssemblyName)
-          return null;
-
-        AppDomain.CurrentDomain.AssemblyResolve -= OnGHIOCommonResolve;
 
         string rhinoGHDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", @"Plug-ins\Grasshopper");
         return Assembly.LoadFrom(Path.Combine(rhinoGHDir, grasshopperAssemblyName + ".dll"));
@@ -114,15 +99,7 @@ namespace InsideNode.Core
       if (!PlugIn.LoadPlugIn(GrasshopperGuid))
         return null;
 
-      var result = Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
-      if (result)
-      {
-        //Console.WriteLine("Grasshopper Loaded.");
-        //var editor = Grasshopper.Instances.DocumentEditor;
-       // var canvas = Grasshopper.Instances.ActiveCanvas;
-      }
-      return result;
-      //return Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
+      return  Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
     }
 
 
@@ -150,38 +127,31 @@ namespace InsideNode.Core
 
     public async Task<object> GrasshopperSubscribeTask(dynamic input)
     {
-      await Task.Factory.StartNew(() => OnGrasshopperLoaded(), CancellationToken.None, TaskCreationOptions.None, this).ContinueWith(t => Console.WriteLine("Grasshopper Registered."));
+      await Task.Factory.StartNew(() => OnGrasshopperLoaded(), CancellationToken.None, TaskCreationOptions.None, this);
       return null;
     }
 
     async Task<object> OnGrasshopperLoaded()
     {
-     
+
       try
       {
-        Console.WriteLine(Instances.GrasshopperPluginId);
-        Grasshopper.Plugin.Commands.Run_GrasshopperOpen(@"C:\Users\Luis Fraguada\Desktop\MeshSphere.gh");
-        //Grasshopper.Instances.CanvasCreated += Instances_CanvasCreated;
-        //Grasshopper.Instances.ActiveCanvas.Document_ObjectsAdded += ActiveCanvas_Document_ObjectsAdded;
-        
-
-
+        // This fails due to not finding System.Windows.Forms
+        var canvas = Grasshopper.Instances.ActiveCanvas;
+        canvas.DocumentChanged += Canvas_DocumentChanged;
 
       }
-      catch (Exception ex) {
+      catch (Exception ex)
+      {
         Console.WriteLine(ex.Message);
+        
       }
-      
+
       //var editor = Grasshopper.Instances.DocumentEditor;
       //var canvas = Grasshopper.Instances.ActiveCanvas;
 
       //canvas.DocumentChanged += Canvas_DocumentChanged;
       return null;
-    }
-
-    private void ActiveCanvas_Document_ObjectsAdded(Grasshopper.Kernel.GH_Document sender, Grasshopper.Kernel.GH_DocObjectEventArgs e)
-    {
-      Console.WriteLine("GH Objects Added!");
     }
 
     private void Instances_CanvasCreated(Grasshopper.GUI.Canvas.GH_Canvas canvas)
@@ -215,7 +185,7 @@ namespace InsideNode.Core
       //foreach (var task in tasksCollection)
       //  TryExecuteTask(task);
 
-      while(tasksCollection.TryDequeue(out var t))
+      while (tasksCollection.TryDequeue(out var t))
       {
         TryExecuteTask(t);
       }

@@ -31,10 +31,10 @@ namespace InsideNode.Core
       return rhinoInsideTaskManager.StartGrasshopperTask(input);
     }
 
-    public void SubscribeToGH(dynamic input)
+    public async Task<object> SubscribeToGH(dynamic input)
     {
       // Subscribe to events
-
+      /*
       var editor = Grasshopper.Instances.DocumentEditor;
       var canvas = Grasshopper.Instances.ActiveCanvas;
 
@@ -42,6 +42,8 @@ namespace InsideNode.Core
       {
         ((Func<object, Task<object>>) input.event_handler)(e).Start();
       };
+      */
+      return rhinoInsideTaskManager.GrasshopperSubscribeTask(input);
     }
 
 

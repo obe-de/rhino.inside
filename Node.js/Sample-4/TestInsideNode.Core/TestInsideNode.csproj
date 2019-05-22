@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\InsideNode.Core\InsideNode.Core.csproj" />
+    <ProjectReference Include="..\InsideNode\InsideNode.csproj" />
   </ItemGroup>
 
 </Project>
