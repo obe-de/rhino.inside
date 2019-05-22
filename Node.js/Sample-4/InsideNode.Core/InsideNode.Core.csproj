@@ -6,6 +6,10 @@
 	<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\src\RhinoInsideTaskManager.cs" Link="RhinoInsideTaskManager.cs" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
