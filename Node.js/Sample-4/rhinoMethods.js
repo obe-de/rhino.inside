@@ -35,12 +35,23 @@ require('electron').ipcRenderer.on('open-rhino', (event, message) => {
 
 require('electron').ipcRenderer.on('open-grasshopper', (event, message) => {
   console.log('starting grasshopper');
-  grasshopperCommand('', function(error, result) {
+  var payload = {
+    cb: function (data, callback) {
+        callback(null, onGhObjectAdded(data));
+    }
+  };
+  grasshopperCommand(payload, function(error, result) {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
   });
 });
+
+function onGhObjectAdded(data)
+{
+  console.log('Object Added in GH ' + data);
+}
+
 
 window.onclose = function(){
   // Do something

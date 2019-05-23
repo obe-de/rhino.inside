@@ -9,9 +9,6 @@ namespace TestInsideNode.Core
       Console.WriteLine("Hello World!");
       var rhinoTaskManager = new InsideNode.RhinoInsideTaskManager();
       rhinoTaskManager.StartGrasshopperTask(null);
-      rhinoTaskManager.GrasshopperSubscribeTask(null);
-
-
     }
   }
 }

@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Rhino;
@@ -23,6 +22,7 @@ namespace InsideNode
     private readonly Thread mainThread = null;
     RhinoCore rhinoCore;
     string rhinoSystemDir;
+    Func<object, Task<object>> cb;
 
     static readonly Guid GrasshopperGuid = new Guid(0xB45A29B1, 0x4343, 0x4035, 0x98, 0x9E, 0x04, 0x4E, 0x85, 0x80, 0xD9, 0xCF);
 
@@ -102,7 +102,7 @@ namespace InsideNode
 
     private void RhinoApp_Initialized(object sender, EventArgs e)
     {
-      Console.WriteLine("Rhino Initialized");
+      Console.WriteLine("Rhino Initialized.");
     }
 
     async Task<object> StartGrasshopper(dynamic input)
@@ -112,8 +112,15 @@ namespace InsideNode
 
       var ghInit = Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
 
+      Console.WriteLine("Grasshopper Initialized.");
+
       // Subscribe to events
       Grasshopper.Instances.ActiveCanvas.Document_ObjectsAdded += Document_ObjectsAdded;
+
+      // input.cb is a callback function in JavaScript.
+      // This is to be called whenever there is an added object in the GH canvas.
+      cb = (Func<object, Task<object>>) input.cb;
+
       return null;
 
     }
@@ -136,36 +143,11 @@ namespace InsideNode
     /// <returns>TODO: Add more meaningful return object.</returns>
     public async Task<object> StartGrasshopperTask(dynamic input)
     {
-      await Task.Factory.StartNew(() => StartGrasshopper(null), CancellationToken.None, TaskCreationOptions.None, this).ContinueWith(t => Console.WriteLine("Grasshopper Loaded."));
+      await Task.Factory.StartNew(() => StartGrasshopper(input), CancellationToken.None, TaskCreationOptions.None, this);
       return null;
     }
 
-    public async Task<object> GrasshopperSubscribeTask(dynamic input)
-    {
-      // This will fail
-      await Task.Factory.StartNew(() => SubscribeToGrasshopperEvents(), CancellationToken.None, TaskCreationOptions.None, this);
-      return null;
-    }
-
-    async Task<object> SubscribeToGrasshopperEvents()
-    {
-      try
-      {
-        Grasshopper.Instances.ActiveCanvas.Document_ObjectsAdded += Document_ObjectsAdded;
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine(ex.Message);
-        
-      }
-      return null;
-    }
-
-    private void Document_ObjectsAdded(object sender, Grasshopper.Kernel.GH_DocObjectEventArgs e)
-    {
-      Console.WriteLine("GH: Added object to document");
-    }
-
+    // Controls the main Rhino message loop.
     private void Execute()
     {
       if (rhinoCore == null)
@@ -176,12 +158,19 @@ namespace InsideNode
       rhinoCore.Run();
     }
 
+    // Event Handlers
+
+    private void Document_ObjectsAdded(object sender, Grasshopper.Kernel.GH_DocObjectEventArgs e)
+    {
+      Console.Write("GH: Added object to document ");
+      Console.WriteLine(e.Objects[0].Name);
+
+      //send data back to Node.js / Electron
+      cb?.Invoke(e.Objects[0].Name);
+    }
+
     private void RhinoApp_Idle(object sender, EventArgs e)
     {
-      //foreach (var task in tasksCollection.GetConsumingEnumerable())
-      //foreach (var task in tasksCollection)
-      //  TryExecuteTask(task);
-
       while (tasksCollection.TryDequeue(out var t))
       {
         TryExecuteTask(t);
