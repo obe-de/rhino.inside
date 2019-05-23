@@ -24,5 +24,10 @@ namespace InsideNode
     {
       return await rhinoInsideTaskManager.StartGrasshopperTask(input);
     }
+
+    public async Task<object> DoSomething(dynamic input)
+    {
+      return await rhinoInsideTaskManager.DoSomethingTask(input);
+    }
   }
 }

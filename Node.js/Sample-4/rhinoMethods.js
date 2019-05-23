@@ -23,12 +23,19 @@ var grasshopperCommand = edge.func({
   methodName: 'StartGrasshopper'
 });
 
+var doSomething = edge.func({
+  assemblyFile: baseDll,
+  typeName: rhinoTypeName,
+  methodName: 'DoSomething'
+});
+
 require('electron').ipcRenderer.on('open-rhino', (event, message) => {
   console.log('starting rhino');
   startRhino('', function(error, result) {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
+
   });
 });
 
@@ -47,9 +54,44 @@ require('electron').ipcRenderer.on('open-grasshopper', (event, message) => {
   });
 });
 
+require('electron').ipcRenderer.on('do-something', (event, message) => {
+  console.log('doing something');
+  doSomething('', function(error, result) {
+    if (error) throw JSON.stringify(error);
+    console.log(error);
+    console.log(result);
+  });
+});
+
+require('electron').ipcRenderer.on('clear-scene', (event, message) => {
+  scene.traverseVisible(function(child) {
+    if (child.type !== 'Scene') {
+       scene.remove(child);
+    }
+  });
+  animate();
+});
+
+
 function onGhObjectAdded(data)
 {
-  console.log('Object Added in GH ' + data);
+  //console.log('Object Added in GH ' + data);
+/*
+  scene.traverseVisible(function(child) {
+    if (child.type !== 'Scene') {
+       scene.remove(child);
+    }
+  });
+  */
+
+  //convert this to object
+  var obj = JSON.parse(data);
+  var rhinoMesh = rhino.CommonObject.decode(obj);
+
+  let material = new THREE.MeshBasicMaterial( {wireframe: true, color: 0x00ff00 } );
+  var threeMesh = meshToThreejs(rhinoMesh, material);
+
+  scene.add(threeMesh);
 }
 
 
@@ -65,68 +107,51 @@ window.onclose = function(){
     */
 }
 
-/*
 // wait for the rhino3dm web assembly to load asynchronously
 rhino3dm().then(function(m) {
-    rhino = m; // global
-    run();
-  });
+  console.log('Loaded rhino3dm.');
+  rhino = m; // global
+  run();
+});
 
-  */
-/*
+
+var scene, camera, renderer, controls;
 function run() {
 
-    var scene = new THREE.Scene();
+    scene = new THREE.Scene();
     scene.background = new THREE.Color(10,10,10);
-    var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-    var controls = new THREE.OrbitControls( camera );
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+    controls = new THREE.OrbitControls( camera );
 
-    var renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setPixelRatio( window.devicePixelRatio );
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     camera.position.z = 5;
 
-    /*startRhino('', function(error, result) {
-        if (error) throw JSON.stringify(error);
-        console.log('Rhino has started.');
-    });
-
-    doSomething('', function(error, result) {
-        if (error) throw JSON.stringify(error);
-        
-        //convert this to object
-        var obj = JSON.parse(result);
-        var rhinoMesh = rhino.CommonObject.decode(obj);
-  
-        let material = new THREE.MeshBasicMaterial( {wireframe: true, color: 0x00ff00 } );
-        var threeMesh = meshToThreejs(rhinoMesh, material);
-
-        scene.add(threeMesh);
-
-    });*/
-/*
     window.addEventListener( 'resize', onWindowResize, false );
 
-    var animate = function () {
-        requestAnimationFrame( animate );
+    
 
-        controls.update();
 
-        renderer.render( scene, camera );
-    };
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize( window.innerWidth, window.innerHeight );
-      render();
-    }
 
     animate();
 
 };
+
+var animate = function () {
+  requestAnimationFrame( animate );
+  controls.update();
+  renderer.render( scene, camera );
+};
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  animate();
+}
 
 
 function meshToThreejs(mesh, material) {
@@ -164,4 +189,3 @@ function meshToThreejs(mesh, material) {
     geometry.addAttribute( 'normal', new THREE.BufferAttribute( normalBuffer, 3 ) );
     return new THREE.Mesh( geometry, material );
   }
-*/

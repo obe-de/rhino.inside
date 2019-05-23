@@ -38,6 +38,22 @@ function createWindow () {
           mainWindow.webContents.send('open-grasshopper');
 
         }
+      },
+      {
+        label: 'Clear Scene',
+        click: (item, focusedWindow) => {
+          
+          mainWindow.webContents.send('clear-scene');
+
+        }
+      },
+      {
+        label: 'Do Something',
+        click: (item, focusedWindow) => {
+          
+          mainWindow.webContents.send('do-something');
+
+        }
       }
     ]
   })
