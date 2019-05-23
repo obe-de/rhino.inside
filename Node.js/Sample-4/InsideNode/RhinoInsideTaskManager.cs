@@ -22,11 +22,13 @@ namespace InsideNode
     //private BlockingCollection<Task> tasksCollection = new BlockingCollection<Task>();
     private readonly Thread mainThread = null;
     RhinoCore rhinoCore;
+    string rhinoSystemDir;
 
     static readonly Guid GrasshopperGuid = new Guid(0xB45A29B1, 0x4343, 0x4035, 0x98, 0x9E, 0x04, 0x4E, 0x85, 0x80, 0xD9, 0xCF);
 
     public RhinoInsideTaskManager()
     {
+      rhinoSystemDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", "System");
 
       ResolveEventHandler OnRhinoCommonResolve = null;
       ResolveEventHandler OnGrasshopperCommonResolve = null;
@@ -41,9 +43,13 @@ namespace InsideNode
 
         AppDomain.CurrentDomain.AssemblyResolve -= OnRhinoCommonResolve;
 
-        string rhinoSystemDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", "System");
+        //rhinoSystemDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "Rhino WIP", "System");
         return Assembly.LoadFrom(Path.Combine(rhinoSystemDir, rhinoCommonAssemblyName + ".dll"));
       };
+
+      
+
+      
 
       AppDomain.CurrentDomain.AssemblyResolve += OnGrasshopperCommonResolve = (sender, args) =>
       {
@@ -63,6 +69,9 @@ namespace InsideNode
       mainThread.TrySetApartmentState(ApartmentState.STA);
       if (!mainThread.IsAlive)
         mainThread.Start();
+
+      mainThread.Name = "RhinoTaskManagerThread";
+      
     }
 
     async Task<object> StartRhino(dynamic input)
@@ -75,6 +84,8 @@ namespace InsideNode
       {
         // Start Rhino
         // TODO: use input argument variables here
+        var PATH = Environment.GetEnvironmentVariable("PATH");
+        Environment.SetEnvironmentVariable("PATH", PATH + ";" + rhinoSystemDir);
         rhinoCore = new RhinoCore(new string[] { "/NOSPLASH" }, WindowStyle.Hidden);
 
         // Subscribe to events
@@ -99,7 +110,12 @@ namespace InsideNode
       if (!PlugIn.LoadPlugIn(GrasshopperGuid))
         return null;
 
-      return  Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
+      var ghInit = Rhino.RhinoApp.RunScript("!_-Grasshopper _W _T ENTER", false) ? true : false;
+
+      // Subscribe to events
+      Grasshopper.Instances.ActiveCanvas.Document_ObjectsAdded += Document_ObjectsAdded;
+      return null;
+
     }
 
     /// <summary>
@@ -127,20 +143,15 @@ namespace InsideNode
     public async Task<object> GrasshopperSubscribeTask(dynamic input)
     {
       // This will fail
-      await Task.Factory.StartNew(() => OnGrasshopperLoaded(), CancellationToken.None, TaskCreationOptions.None, this);
+      await Task.Factory.StartNew(() => SubscribeToGrasshopperEvents(), CancellationToken.None, TaskCreationOptions.None, this);
       return null;
     }
 
-    async Task<object> OnGrasshopperLoaded()
+    async Task<object> SubscribeToGrasshopperEvents()
     {
       try
       {
-        // This fails due to not finding System.Windows.Forms
-        //var canvas = Grasshopper.Instances.ActiveCanvas;
-        //canvas.DocumentChanged += Canvas_DocumentChanged;
-        //canvas.Document_ObjectsAdded
-
-        Grasshopper.Instances.ActiveCanvas.Document.ObjectsAdded += Document_ObjectsAdded;
+        Grasshopper.Instances.ActiveCanvas.Document_ObjectsAdded += Document_ObjectsAdded;
       }
       catch (Exception ex)
       {
@@ -153,21 +164,6 @@ namespace InsideNode
     private void Document_ObjectsAdded(object sender, Grasshopper.Kernel.GH_DocObjectEventArgs e)
     {
       Console.WriteLine("GH: Added object to document");
-    }
-
-    private void Instances_CanvasCreated(Grasshopper.GUI.Canvas.GH_Canvas canvas)
-    {
-      Console.WriteLine("GH Canvas Created");
-    }
-
-    private void DocServer_DocumentAdded(Grasshopper.Kernel.GH_DocumentServer sender, Grasshopper.Kernel.GH_Document doc)
-    {
-      Console.WriteLine("GH Doc Added.");
-    }
-
-    private void Canvas_DocumentChanged(Grasshopper.GUI.Canvas.GH_Canvas sender, Grasshopper.GUI.Canvas.GH_CanvasDocumentChangedEventArgs e)
-    {
-      Console.WriteLine("GH: Doc Changed");
     }
 
     private void Execute()

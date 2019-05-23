@@ -1,16 +1,13 @@
 const path = require('path');
-var version = 'core';
-var namespace = 'InsideNode.' + version.charAt(0).toUpperCase() + version.substr(1);
-if(version === 'core') version = 'coreapp';
+var namespace = 'InsideNode';
 
-const baseNetAppPath = path.join(__dirname, namespace +'/bin/Debug/net'+ version +'2.0');
+const baseNetAppPath = path.join(__dirname, namespace + '/bin/Debug/');
+var baseDll = path.join(baseNetAppPath, namespace + '.dll');
 
-process.env.EDGE_USE_CORECLR = 1;
+//process.env.EDGE_USE_CORECLR = 1;
 process.env.EDGE_APP_ROOT = baseNetAppPath;
 
 var edge = require('electron-edge-js');
-
-var baseDll = path.join(baseNetAppPath, namespace + '.dll');
 
 var rhinoTypeName = namespace + '.RhinoMethods';
 
@@ -20,28 +17,10 @@ var startRhino = edge.func({
     methodName: 'StartRhino'
 });
 
-var disposeRhino = edge.func({
-  assemblyFile: baseDll,
-  typeName: rhinoTypeName,
-  methodName: 'DisposeRhino'
-});
-
 var grasshopperCommand = edge.func({
   assemblyFile: baseDll,
   typeName: rhinoTypeName,
-  methodName: 'StartGrasshopperNow'
-});
-
-var rhinoRun = edge.func({
-  assemblyFile: baseDll,
-  typeName: rhinoTypeName,
-  methodName: 'RhinoRun'
-});
-
-var subscribe = edge.func({
-  assemblyFile: baseDll,
-  typeName: rhinoTypeName,
-  methodName: 'Subscribe'
+  methodName: 'StartGrasshopper'
 });
 
 require('electron').ipcRenderer.on('open-rhino', (event, message) => {
@@ -53,21 +32,6 @@ require('electron').ipcRenderer.on('open-rhino', (event, message) => {
   });
 });
 
-require('electron').ipcRenderer.on('close-rhino', (event, message) => {
-  console.log('closing rhino');
-  disposeRhino(
-    {
-      event_handler: function (data, cb) {
-        console.log('Received Canvas Doc Changed', data);
-        cb();
-      }
-    }, function(error, result) {
-    if (error) throw JSON.stringify(error);
-    console.log(error);
-    console.log(result);
-  });
-  console.log('passed starting thread');
-});
 
 require('electron').ipcRenderer.on('open-grasshopper', (event, message) => {
   console.log('starting grasshopper');
@@ -75,47 +39,19 @@ require('electron').ipcRenderer.on('open-grasshopper', (event, message) => {
     if (error) throw JSON.stringify(error);
     console.log(error);
     console.log(result);
-
-    rhinoRun('', function(error, result) {
-      if (error) throw JSON.stringify(error);
-      console.log(error);
-      console.log(result);
-    });
-
-  });
-});
-
-require('electron').ipcRenderer.on('subscribe', (event, message) => {
-  console.log('subscribing to event');
-
-  subscribe({
-    interval: 2000,
-    event_handler: function (data, cb) {
-        console.log('Received event', data);
-        cb();
-    } 
-  }, function (error, unsubscribe) {
-    if (error) throw error;
-    console.log('Subscribed to .NET events. Unsubscribing in 7 seconds...');
-    setTimeout(function () {
-        unsubscribe(null, function (error) {
-            if (error) throw error;
-            console.log('Unsubscribed from .NET events.');
-            console.log('Waiting 5 seconds before exit to show that no more events are generated...')
-            setTimeout(function () {}, 5000);
-        });
-    }, 7000);
   });
 });
 
 window.onclose = function(){
   // Do something
+  /*
   console.log('About to dispose Rhino');
     disposeRhino('', function(error, result) {
       if (error) throw JSON.stringify(error);
       console.log(error);
       console.log(result);
     });
+    */
 }
 
 /*
@@ -126,7 +62,7 @@ rhino3dm().then(function(m) {
   });
 
   */
-
+/*
 function run() {
 
     var scene = new THREE.Scene();
@@ -159,7 +95,7 @@ function run() {
         scene.add(threeMesh);
 
     });*/
-
+/*
     window.addEventListener( 'resize', onWindowResize, false );
 
     var animate = function () {
@@ -217,3 +153,4 @@ function meshToThreejs(mesh, material) {
     geometry.addAttribute( 'normal', new THREE.BufferAttribute( normalBuffer, 3 ) );
     return new THREE.Mesh( geometry, material );
   }
+*/

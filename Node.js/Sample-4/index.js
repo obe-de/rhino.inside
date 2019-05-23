@@ -1,7 +1,5 @@
 const electron = require('electron');
 
-var version = process.argv[1].replace('--', '');
-
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
@@ -12,7 +10,6 @@ const shell = electron.shell;
 
 const defaultMenu = require('electron-default-menu');
 
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -22,7 +19,7 @@ function createWindow () {
     mainWindow = new BrowserWindow({width: 1052, height: 600});
   
     // and load the index.html of the app.
-    mainWindow.loadURL(`file://${__dirname}/index.html?version=${version}`);
+    mainWindow.loadURL(`file://${__dirname}/index.html`);
   
     // Open the DevTools.
     mainWindow.webContents.openDevTools()
@@ -35,34 +32,10 @@ function createWindow () {
     label: 'Rhinoceros',
     submenu: [
       {
-        label: 'Open Rhino',
-        click: (item, focusedWindow) => {
-          
-          mainWindow.webContents.send('open-rhino');
-
-        }
-      },
-      {
         label: 'Open Grasshopper',
         click: (item, focusedWindow) => {
           
           mainWindow.webContents.send('open-grasshopper');
-
-        }
-      },
-      {
-        label: 'Close Rhino',
-        click: (item, focusedWindow) => {
-          
-          mainWindow.webContents.send('close-rhino');
-
-        }
-      },
-      {
-        label: 'Subscribe',
-        click: (item, focusedWindow) => {
-          
-          mainWindow.webContents.send('subscribe');
 
         }
       }
