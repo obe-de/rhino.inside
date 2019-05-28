@@ -188,8 +188,18 @@ namespace InsideNode
     private void Definition_SolutionEnd(object sender, GH_SolutionEventArgs e)
     {
       Console.WriteLine("GH: Solution End.");
-      
-      foreach (var obj in e.Document.Objects.OfType<IGH_ActiveObject>())
+
+      // Process Meshes
+      var mesh = GetDocumentPreview(e.Document);
+      cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+
+    }
+
+    Rhino.Geometry.Mesh GetDocumentPreview(GH_Document document)
+    {
+      var meshPreview = new Rhino.Geometry.Mesh();
+
+      foreach (var obj in document.Objects.OfType<IGH_ActiveObject>())
       {
         if (obj.Locked)
           continue;
@@ -202,26 +212,29 @@ namespace InsideNode
 
             if (obj is IGH_Component component)
             {
-              foreach (var param in component.Params.Output)
-                foreach (var value in param.VolatileData.AllData(true))
-                {
-                  if (value is IGH_PreviewData)
+              if(!component.Hidden)
+                foreach (var param in component.Params.Output)
+                  foreach (var value in param.VolatileData.AllData(true))
                   {
-                    switch (value.ScriptVariable())
+                    if (value is IGH_PreviewData)
                     {
-                      case Rhino.Geometry.Mesh mesh:
-                        //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
-                        cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
-                        break;
-                      case Rhino.Geometry.Brep brep:
-                        var previewMesh = new Rhino.Geometry.Mesh();
-                        previewMesh.Append(Rhino.Geometry.Mesh.CreateFromBrep(brep, Rhino.Geometry.MeshingParameters.Default));
-                        //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
-                        cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
-                        break;
+                      switch (value.ScriptVariable())
+                      {
+                        case Rhino.Geometry.Mesh mesh:
+                          //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+                          // cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+                          meshPreview.Append(mesh);
+                          break;
+                        case Rhino.Geometry.Brep brep:
+                          var previewMesh = new Rhino.Geometry.Mesh();
+                          previewMesh.Append(Rhino.Geometry.Mesh.CreateFromBrep(brep, Rhino.Geometry.MeshingParameters.Default));
+                          //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
+                          // cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
+                          meshPreview.Append(previewMesh);
+                          break;
+                      }
                     }
                   }
-                }
             }
             else if (obj is IGH_Param param)
             {
@@ -232,14 +245,16 @@ namespace InsideNode
                   switch (value.ScriptVariable())
                   {
                     case Rhino.Geometry.Mesh mesh:
-                      Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
-                      cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+                      // Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+                      // cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(mesh, GeometryResolver.Settings));
+                      meshPreview.Append(mesh);
                       break;
                     case Rhino.Geometry.Brep brep:
                       var previewMesh = new Rhino.Geometry.Mesh();
                       previewMesh.Append(Rhino.Geometry.Mesh.CreateFromBrep(brep, Rhino.Geometry.MeshingParameters.Default));
-                      Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
-                      cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
+                      // Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
+                      // cb?.Invoke(Newtonsoft.Json.JsonConvert.SerializeObject(previewMesh, GeometryResolver.Settings));
+                      meshPreview.Append(previewMesh);
                       break;
                   }
                 }
@@ -248,6 +263,8 @@ namespace InsideNode
           }
         }
       }
+
+      return meshPreview;
     }
 
     private void Document_ObjectsAdded(object sender, Grasshopper.Kernel.GH_DocObjectEventArgs e)

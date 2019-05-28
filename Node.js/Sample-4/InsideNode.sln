@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InsideNode", "InsideNode\InsideNode.csproj", "{81FE0F59-B3F6-4D9A-A4C9-D7F239365E98}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestInsideNode", "TestInsideNodeFramework\TestInsideNode.csproj", "{B9295B66-0F98-4BEF-9DD0-908875ADC523}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestInsideNode", "TestInsideNode\TestInsideNode.csproj", "{B9295B66-0F98-4BEF-9DD0-908875ADC523}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

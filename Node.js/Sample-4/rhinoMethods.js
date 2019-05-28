@@ -76,13 +76,13 @@ require('electron').ipcRenderer.on('clear-scene', (event, message) => {
 function onGhObjectAdded(data)
 {
   //console.log('Object Added in GH ' + data);
-/*
+
   scene.traverseVisible(function(child) {
     if (child.type !== 'Scene') {
        scene.remove(child);
     }
   });
-  */
+  
 
   //convert this to object
   var obj = JSON.parse(data);
@@ -152,7 +152,6 @@ function onWindowResize() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   animate();
 }
-
 
 function meshToThreejs(mesh, material) {
     var geometry = new THREE.BufferGeometry();
